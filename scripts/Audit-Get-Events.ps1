@@ -19,7 +19,13 @@ Import-Module ExchangeOnlineManagement
 
 # Connect to Exchange Online
 try {
-    Connect-ExchangeOnline
+    # Check if already connected to Exchange Online
+    $existingConnection = Get-ConnectionInformation -ErrorAction SilentlyContinue
+    if ($existingConnection) {
+        Write-Host "Using existing Exchange Online connection."
+    } else {
+        Connect-ExchangeOnline
+    }
     Write-Host "Connected to Exchange Online."
 } catch {
     Write-Host "Failed to connect to Exchange Online: $_"
@@ -28,6 +34,19 @@ try {
 #Modify the values for the following variables to configure the audit log search.
 $logFile = "C:\M365CopilotReport\AuditScriptLog.txt"
 $outputFile = "C:\M365CopilotReport\Copilot_Events.csv"
+# Check if the directory exists for log file and create if it doesn't
+$logFileDirectory = Split-Path -Path $logFile -Parent
+if (-not (Test-Path -Path $logFileDirectory)) {
+    New-Item -ItemType Directory -Path $logFileDirectory -Force | Out-Null
+    Write-Host "Created directory: $logFileDirectory"
+}
+
+# Check if the directory exists for output file and create if it doesn't
+$outputFileDirectory = Split-Path -Path $outputFile -Parent
+if (-not (Test-Path -Path $outputFileDirectory)) {
+    New-Item -ItemType Directory -Path $outputFileDirectory -Force | Out-Null
+    Write-Host "Created directory: $outputFileDirectory"
+}
 If(Test-Path $outputFile -PathType Leaf)
     {
         $lastEvent = Get-Content $outputFile -ErrorAction SilentlyContinue | Select-Object -Last 1
@@ -205,5 +224,3 @@ while ($true)
 
 Write-LogFile "END: Retrieving audit records between $($start) and $($end), RecordType=$record, PageSize=$Recordsize, total count: $totalCount."
 Write-Host "Script complete! Finished retrieving audit records for the date range between $($start) and $($end). Total count: $totalCount" -foregroundColor Green
-
-

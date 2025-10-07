@@ -14,7 +14,11 @@ if ($module -eq $null) {
 
 # Connect to Microsoft Graph
 try {
-    Connect-MgGraph -Scopes "User.Read.All","User.ReadBasic.All","Directory.Read.All" -NoWelcome
+    # Check if already connected to Microsoft Graph
+    $context = Get-MgContext
+    if ($context -eq $null) {
+        Connect-MgGraph -Scopes "User.Read.All","User.ReadBasic.All","Directory.Read.All" -NoWelcome
+    }
     Write-Host "Connected to Microsoft Graph."
 } catch {
     Write-Host "Failed to connect to Microsoft Graph: $_"
